@@ -1,9 +1,13 @@
-name: Daily Telegram Bot
+name: Daily Telegram Scheduler
 
 on:
   schedule:
     - cron: "0 18 * * *"
+
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   run-bot:
@@ -12,6 +16,8 @@ jobs:
     steps:
       - name: Get bot code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -22,7 +28,22 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Run bot
+      - name: Run daily scheduler
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        run: python bot.py
+          TZ: Africa/Addis_Ababa
+        run: python daily_runner.py
+
+      - name: Save updated database
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add scheduler.db
+
+          if git diff --cached --quiet; then
+            echo "No database changes to save."
+          else
+            git commit -m "Update scheduler database after daily run"
+            git push
+          fi
