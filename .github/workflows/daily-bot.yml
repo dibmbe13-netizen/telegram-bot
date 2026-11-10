@@ -11,6 +11,7 @@ permissions:
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
 
     steps:
       - name: Get bot code
@@ -26,20 +27,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run daily scheduler
+      - name: Run interactive Telegram bot
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TZ: Africa/Addis_Ababa
-        run: python daily_runner.py
-
-      - name: Save updated database
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scheduler.db
-          if git diff --cached --quiet; then
-            echo "No database changes to save."
-          else
-            git commit -m "Update scheduler database after daily run"
-            git push
-          fi
+        run: python bot.py
