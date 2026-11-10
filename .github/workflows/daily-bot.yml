@@ -2,16 +2,11 @@ name: Daily Telegram Scheduler
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
-
+    - cron: "0 18 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
-
-concurrency:
-  group: telegram-scheduler
-  cancel-in-progress: false
 
 jobs:
   run-bot:
@@ -31,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run scheduled-message check
+      - name: Run daily scheduler
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TZ: Africa/Addis_Ababa
@@ -45,6 +40,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No database changes to save."
           else
-            git commit -m "Update scheduler database after scheduled run"
+            git commit -m "Update scheduler database after daily run"
             git push
           fi
